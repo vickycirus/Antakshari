@@ -29,17 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => VoiceDetectionScreen()),
-              );
-            },
-            child: Text('Start Voice Detection'),
-          ),
+
           Text(
-            "Create/Join a room to play Cuadro",
+            "Create/Join a room to play Online AntakShari",
             style: TextStyle(
               color: Colors.black,
               fontSize: 24,

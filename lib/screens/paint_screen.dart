@@ -39,22 +39,24 @@ class _PaintScreenState extends State<PaintScreen> {
   var scaffoldKey = GlobalKey<ScaffoldState>();
   bool isTextInputReadOnly = false;
   String _firstChar='Y';
-
+  final correctData='';
   stt.SpeechToText _speech;
   bool _isListening = false;
   String _text = '';
 
+  String songName = '';
+  String singer = '';
+  String album ='';
+  String lastCharacter = '';
   Timer _timer;
-  int _start = 60;
-  int roundTime = 60;
+  int _start = 40;
+  int roundTime = 40;
   int guessedUserCtr = 0;
   bool isShowFinalLeaderboard = false;
   String winner;
   int maxPoints = 0;
 
-  // round time -> 30 sec
-  // waiting -> until room.players === room.occupancy
-  // select word -> 10 sec
+
 
   void startTimer() {
     const oneSec = const Duration(seconds: 1);
@@ -65,6 +67,7 @@ class _PaintScreenState extends State<PaintScreen> {
           print("timer 0");
           socket.emit("change-turn", dataOfRoom["name"]);
           setState(() {
+            getData();
             timer.cancel();
           });
         } else {
@@ -80,6 +83,7 @@ class _PaintScreenState extends State<PaintScreen> {
   void initState() {
     super.initState();
     connect();
+    getData();
     selectedColor = Colors.black;
     strokeWidth = 2.0;
     _speech = stt.SpeechToText();
@@ -102,11 +106,6 @@ class _PaintScreenState extends State<PaintScreen> {
     String url = "http://127.0.0.1:3000/getsongs";
     final bodyServer = jsonEncode({"lyrics": _text,
         "firstCharacter": _firstChar});
-// // Define the data you want to send
-//     Map<String, dynamic> songLyricsData = {
-//       'lyrics': _text,
-//       'firstCharacter': _firstChar,
-//     };
 
 // Send the data to the backend
     http.Response response = await http.post(
@@ -117,21 +116,42 @@ class _PaintScreenState extends State<PaintScreen> {
 
 // Check the response status code
     if (response.statusCode == 200) {
-      // The request was successful
-      final lastCharacter = json.decode(response.body);
-      String ff = lastCharacter['lastLetter'];
-      if(ff.length>0){
-        _firstChar =ff;
+      getData();
+      final dataBack = json.decode(response.body);
+      String test = dataBack['lastLetter'];
+      if(test.length>0) {
+        songName = dataBack['songName'];
+        singer = dataBack['singer'];
+        album = dataBack['album'];
+        lastCharacter = dataBack['lastLetter'];
+        print("Song details");
+        print(songName);
+
       }
       else{
-        _firstChar = getRandomCharacter();
+        lastCharacter='';
+        print(" i AM FALSE");
+        print(lastCharacter);
       }
-
     } else {
       // The request failed
+
+      lastCharacter='';
       print('Request failed with status: ${response.statusCode}.');
     }
   }
+
+  void getData() async {
+    var url = Uri.parse('http://127.0.0.1:3000/firstchar');
+    var response = await http.get(url);
+    final temp = json.decode(response.body);
+    _firstChar = temp['data'];
+    print("response body");
+    // print(response.body);
+    print("first char");
+    print(_firstChar);
+  }
+
 
   String getRandomCharacter() {
     final random = Random();
@@ -243,31 +263,45 @@ class _PaintScreenState extends State<PaintScreen> {
       });
 
       socket.on("change-turn", (data) {
-        print("HEY CHANGE TURN PAINT SCREEN");
-        String oldeWord = dataOfRoom["word"];
+        String oldWord = dataOfRoom["word"];
         showDialog(
-            context: scaffoldKey.currentContext,
-            barrierDismissible: true,
-            builder: (newContext) {
-              Future.delayed(Duration(seconds: 3), () {
-                setState(() {
-                  dataOfRoom = data;
-                  renderTextBlank(data["word"]);
-                  isTextInputReadOnly = false;
-                  _start = 60;
-                  guessedUserCtr = 0;
-                  points.clear();
-                });
-                // cancelling the before timer
-                Navigator.of(scaffoldKey.currentContext).pop(true);
-                _timer.cancel();
-                startTimer();
+          context: scaffoldKey.currentContext,
+          barrierDismissible: true,
+          builder: (newContext) {
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                dataOfRoom = data;
+                renderTextBlank(data["word"]);
+                isTextInputReadOnly = false;
+                _start = 40;
+                guessedUserCtr = 0;
+                points.clear();
               });
-              return AlertDialog(
-                title: Center(child: Text("Word was $oldeWord")),
-              );
+              // cancelling the before timer
+              Navigator.of(scaffoldKey.currentContext).pop(true);
+              _timer.cancel();
+              startTimer();
             });
+            if (dataOfRoom["turn"]["nickname"] == widget.data["nickname"] && lastCharacter.length > 0) {
+              return AlertDialog(
+                title: Text('You Sang Correct'),
+                content: Text('Songs is :$songName'),
+              );
+            } else if(dataOfRoom["turn"]["nickname"] == widget.data["nickname"] && lastCharacter.length ==0) {
+              return AlertDialog(
+                title: Text('You Sang Wrong'),
+                content: Text('wrong'),
+              );
+            }
+            else{
+              return AlertDialog(
+                title: Center(child: Text("${dataOfRoom["turn"]["nickname"]} Turn Completed")),
+              );
+            }
+          },
+        );
       });
+
 
       socket.on("show-leaderboard", (roomPlayers) {
         print(scoreboard);
@@ -298,7 +332,7 @@ class _PaintScreenState extends State<PaintScreen> {
           guessedUserCtr = messageData["guessedUserCtr"];
         });
         if (guessedUserCtr == dataOfRoom["players"].length - 1) {
-          // length-1 because we dont have to include the host to guess.
+          // length-1 because we don't have to include the host to guess.
           // next round
           print("message change turn");
           socket.emit("change-turn", dataOfRoom["name"]);
@@ -456,6 +490,7 @@ class _PaintScreenState extends State<PaintScreen> {
                               //     ),
                               //   ),
                               // ),
+
                               child: Text(
                                 "The Song should start with letter $_firstChar",
                                 style: TextStyle(
@@ -467,35 +502,35 @@ class _PaintScreenState extends State<PaintScreen> {
                                     widget.data["nickname"]
                                 ? Row(
                                     children: <Widget>[
-                                      IconButton(
-                                          icon: Icon(
-                                            Icons.color_lens,
-                                            color: selectedColor,
-                                          ),
-                                          onPressed: () {
-                                            selectColor();
-                                          }),
-                                      Expanded(
-                                        child: Slider(
-                                          min: 1.0,
-                                          max: 10.0,
-                                          label: "Stroke $strokeWidth",
-                                          activeColor: selectedColor,
-                                          value: strokeWidth,
-                                          onChanged: (double value) {
-                                            socket.emit("stroke-width", value);
-                                          },
-                                        ),
-                                      ),
-                                      IconButton(
-                                          icon: Icon(
-                                            Icons.layers_clear,
-                                            color: Colors.black,
-                                          ),
-                                          onPressed: () {
-                                            socket.emit("clean-screen",
-                                                widget.data["name"]);
-                                          }),
+                                    //   IconButton(
+                                    //       icon: Icon(
+                                    //         Icons.color_lens,
+                                    //         color: selectedColor,
+                                    //       ),
+                                    //       onPressed: () {
+                                    //         selectColor();
+                                    //       }),
+                                    //   Expanded(
+                                    //     child: Slider(
+                                    //       min: 1.0,
+                                    //       max: 10.0,
+                                    //       label: "Stroke $strokeWidth",
+                                    //       activeColor: selectedColor,
+                                    //       value: strokeWidth,
+                                    //       onChanged: (double value) {
+                                    //         socket.emit("stroke-width", value);
+                                    //       },
+                                    //     ),
+                                    //   ),
+                                    //   IconButton(
+                                    //       icon: Icon(
+                                    //         Icons.layers_clear,
+                                    //         color: Colors.black,
+                                    //       ),
+                                    //       onPressed: () {
+                                    //         socket.emit("clean-screen",
+                                    //             widget.data["name"]);
+                                    //       }),
                                     ],
                                   )
                                 : Center(
@@ -531,12 +566,20 @@ class _PaintScreenState extends State<PaintScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
+
                                     Center(
                                       child: Text(
                                         _text,
                                         style: TextStyle(fontSize: 32.0),
                                       ),
                                     ),
+                                        Text(
+                                        "The Song should start with letter $_firstChar",
+                                        style: TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold),
+                                        ),
+
                                     SizedBox(height: 20.0),
                                     FloatingActionButton(
                                       onPressed: _isListening ? _stopListening : _startListening,
@@ -561,8 +604,10 @@ class _PaintScreenState extends State<PaintScreen> {
                                         "Submit",
                                         style: TextStyle(color: Colors.white, fontSize: 16),
                                       ),
+
                                     ),
                                   ],
+
                                 ),
 
                             Container(

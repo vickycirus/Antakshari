@@ -79,7 +79,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
             //elevation: 5,
             style: TextStyle(color: Colors.white),
             iconEnabledColor: Colors.black,
-            items: <String>["2", "5", "10", "15"]
+            items: <String>["1", "2", "5", "10", "15"]
                 .map<DropdownMenuItem<String>>(
                     (String value) => DropdownMenuItem<String>(
                           value: value,

@@ -8,6 +8,7 @@ var io = require("socket.io")(server);
 const mongoose = require("mongoose");
 const getWord = require("./apis/generateWord");
 const Room = require("./models/Room");
+const FirstChar = require("./models/Firstchar");
 const dotenv = require("dotenv");
 const songsData = require('./apis/songs.json');
 dotenv.config();
@@ -24,7 +25,7 @@ mongoose
         useFindAndModify: false,
     })
     .then(() => {
-        console.log("connection succesful");
+        console.log("connection successful");
     })
     .catch((e) => {
         console.log(e);
@@ -32,13 +33,16 @@ mongoose
 
 // sockets
 
-app.get("/", (req, res) => {
-    return res.send("HEY Working, lets gooooooo!");
+app.get("/firstchar",async (req, res) => {
+     const Obj = await FirstChar.find({});
+
+     return res.send({data:Obj[0].firstChar});
 });
 
 
-app.post("/getsongs", function(req, res) {
+app.post("/getsongs", async(req, res) =>{
     let data = req.body;
+    let temp = false;
     console.log(data)
     let songLyrics = data.lyrics;
     let firstChar = data.firstCharacter;
@@ -57,6 +61,8 @@ app.post("/getsongs", function(req, res) {
             }
             if (count >= 4 && splitwords[0].toLowerCase()[0] === firstChar.toLowerCase()) {
                 let lastWord = splitwords[splitwords.length - 1]
+                 await FirstChar.updateOne({_id:'64298b7e2f333f3ad88c9d57'},{$set:{firstChar:lastWord[lastWord.length - 1]}})
+                temp =true
                 res.send({
                     "songName": songsData[i].name,
                     "singer": songsData[i].singer,
@@ -67,9 +73,13 @@ app.post("/getsongs", function(req, res) {
 
         }
     }
+    if(temp===false){
+    await FirstChar.updateOne({_id:'64298b7e2f333f3ad88c9d57'},{$set:{firstChar:"m"}})
     res.send({
-        "lastLetter": ""
-    });
+            "lastLetter": ""
+        });
+    }
+
 });
 
 
@@ -90,6 +100,8 @@ io.on("connection", (socket) => {
             details: details
         });
     });
+
+
 
     socket.on("clean-screen", (roomId) => {
         io.to(roomId).emit("clear-screen", "");
