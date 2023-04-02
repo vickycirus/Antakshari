@@ -1,6 +1,7 @@
 import 'package:cuadro/screens/create_room_screen.dart';
 import 'package:cuadro/screens/join_room_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:cuadro/screens/voice_detection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String data;
@@ -28,6 +29,15 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => VoiceDetectionScreen()),
+              );
+            },
+            child: Text('Start Voice Detection'),
+          ),
           Text(
             "Create/Join a room to play Cuadro",
             style: TextStyle(

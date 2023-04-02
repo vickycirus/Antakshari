@@ -23,11 +23,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  speech_to_text: ^3.0.0
   cupertino_icons: ^1.0.2
   flutter_colorpicker: ^0.3.2
   flutter_simple_dependency_injection: ^1.0.1
   provider: ^5.0.0
   socket_io_client: ^0.9.12
+  http: ^0.13.4
+
 
 dev_dependencies:
   flutter_test:

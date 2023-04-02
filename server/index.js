@@ -8,14 +8,14 @@ const mongoose = require("mongoose");
 const getWord = require("./apis/generateWord");
 const Room = require("./models/Room");
 const dotenv = require("dotenv");
-
+const songsData = require('./apis/songs.json');
 dotenv.config();
 
 //middleware
 app.use(express.json());
 
 mongoose
-  .connect(process.env.MONGODB_URL, {
+  .connect("mongodb+srv://vikram:vikram@cluster0.wsgcmdk.mongodb.net/?retryWrites=true&w=majority", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
@@ -33,6 +33,41 @@ mongoose
 app.get("/", (req, res) => {
   return res.send("HEY Working, lets gooooooo!");
 });
+
+
+app.post("/getsongs", function(req, res) {
+    let data = req.body;
+    // console.log(data)
+    let songLyrics = data.lyrics;
+    let firstChar = data.firstCharacter;
+    let splitwords = songLyrics.split(' ');
+    for (let i = 0; i < songsData.length; i++) {
+        let dataWords = songsData[i].lyrics;
+        let dataWordsSplit = dataWords.split(' ');
+        let count = 0;
+        for (let j = 0; j < 6; j++) {
+            // let ss = splitwords[j];["helo","fg"]
+            if (splitwords[j].toLowerCase() === dataWordsSplit[j].toLowerCase()) {
+                count++;
+            }
+        }
+        if (count >= 4 && splitwords[0].toLowerCase()[0] === firstChar.toLowerCase()) {
+            let lastWord = splitwords[splitwords.length-1]
+            res.send({
+                "songName": songsData[i].name,
+                "singer": songsData[i].singer,
+                "album": songsData[i].album,
+                "lastLetter":lastWord[lastWord.length-1]
+            })
+        }
+
+    }
+    res.send({
+        "lastLetter": ""
+    });
+});
+
+
 
 io.on("connection", (socket) => {
   console.log("connected");

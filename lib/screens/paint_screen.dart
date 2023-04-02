@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:cuadro/screens/voice_detection_screen.dart';
 import 'package:cuadro/models/custom_painter.dart';
 import 'package:cuadro/models/touch_point.dart';
 import 'package:cuadro/screens/home_screen.dart';
@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:http/http.dart' as http;
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class PaintScreen extends StatefulWidget {
   final Map data;
@@ -34,6 +36,11 @@ class _PaintScreenState extends State<PaintScreen> {
   var focusNode = FocusNode();
   var scaffoldKey = GlobalKey<ScaffoldState>();
   bool isTextInputReadOnly = false;
+
+
+  stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _text = '';
 
   Timer _timer;
   int _start = 60;
@@ -73,6 +80,7 @@ class _PaintScreenState extends State<PaintScreen> {
     connect();
     selectedColor = Colors.black;
     strokeWidth = 2.0;
+    _speech = stt.SpeechToText();
   }
 
   void renderTextBlank(String text) {
@@ -85,8 +93,25 @@ class _PaintScreenState extends State<PaintScreen> {
     }
   }
 
+  void _startListening() async {
+    bool available = await _speech.initialize();
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(
+        onResult: (result) => setState(() {
+          _text = result.recognizedWords;
+        }),
+      );
+    }
+  }
+
+  void _stopListening() {
+    setState(() => _isListening = false);
+    _speech.stop();
+  }
+
   void connect() {
-    socket = IO.io("http://<yourip>:3000", <String, dynamic>{
+    socket = IO.io("http://192.168.0.5:3000", <String, dynamic>{
       "transports": ["websocket"],
       "autoConnect": false,
     });
@@ -274,7 +299,7 @@ class _PaintScreenState extends State<PaintScreen> {
     });
 
     // socket.emit("test", "Hello World");
-    print("hey ${socket.connected}");
+    print("hey f ${socket.connected}");
   }
 
   @override
@@ -334,55 +359,61 @@ class _PaintScreenState extends State<PaintScreen> {
                           children: <Widget>[
                             Container(
                               width: width,
-                              height: height * 0.55,
-                              child: GestureDetector(
-                                onPanUpdate: dataOfRoom["turn"]["nickname"] ==
-                                        widget.data["nickname"]
-                                    ? (details) {
-                                        socket.emit("paint", {
-                                          "details": {
-                                            "dx": details.localPosition.dx,
-                                            "dy": details.localPosition.dy
-                                          },
-                                          "roomName": widget.data["name"]
-                                        });
-                                      }
-                                    : (_) {},
-                                onPanStart: dataOfRoom["turn"]["nickname"] ==
-                                        widget.data["nickname"]
-                                    ? (details) {
-                                        socket.emit("paint", {
-                                          "details": {
-                                            "dx": details.localPosition.dx,
-                                            "dy": details.localPosition.dy
-                                          },
-                                          "roomName": widget.data["name"]
-                                        });
-                                      }
-                                    : (_) {},
-                                onPanEnd: dataOfRoom["turn"]["nickname"] ==
-                                        widget.data["nickname"]
-                                    ? (details) {
-                                        socket.emit("paint", {
-                                          "details": null,
-                                          "roomName": widget.data["name"]
-                                        });
-                                      }
-                                    : (_) {},
-                                child: SizedBox.expand(
-                                  child: ClipRRect(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(20.0)),
-                                    child: RepaintBoundary(
-                                      key: globalKey,
-                                      child: CustomPaint(
-                                        size: Size.infinite,
-                                        painter:
-                                            MyCustomPainter(pointsList: points),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                              height: height * 0.2,
+                              // child: GestureDetector(
+                              //   onPanUpdate: dataOfRoom["turn"]["nickname"] ==
+                              //           widget.data["nickname"]
+                              //       ? (details) {
+                              //           socket.emit("paint", {
+                              //             "details": {
+                              //               "dx": details.localPosition.dx,
+                              //               "dy": details.localPosition.dy
+                              //             },
+                              //             "roomName": widget.data["name"]
+                              //           });
+                              //         }
+                              //       : (_) {},
+                              //   onPanStart: dataOfRoom["turn"]["nickname"] ==
+                              //           widget.data["nickname"]
+                              //       ? (details) {
+                              //           socket.emit("paint", {
+                              //             "details": {
+                              //               "dx": details.localPosition.dx,
+                              //               "dy": details.localPosition.dy
+                              //             },
+                              //             "roomName": widget.data["name"]
+                              //           });
+                              //         }
+                              //       : (_) {},
+                              //   onPanEnd: dataOfRoom["turn"]["nickname"] ==
+                              //           widget.data["nickname"]
+                              //       ? (details) {
+                              //           socket.emit("paint", {
+                              //             "details": null,
+                              //             "roomName": widget.data["name"]
+                              //           });
+                              //         }
+                              //       : (_) {},
+                              //   child: SizedBox.expand(
+                              //     child: ClipRRect(
+                              //       borderRadius:
+                              //           BorderRadius.all(Radius.circular(20.0)),
+                              //       child: RepaintBoundary(
+                              //         key: globalKey,
+                              //         child: CustomPaint(
+                              //           size: Size.infinite,
+                              //           painter:
+                              //               MyCustomPainter(pointsList: points),
+                              //         ),
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
+                              child: Text(
+                                "The Song should start with letter {A}",
+                                style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                             dataOfRoom["turn"]["nickname"] ==
@@ -422,7 +453,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                   )
                                 : Center(
                                     child: Text(
-                                      "${dataOfRoom["turn"]["nickname"]} is drawing..",
+                                      "${dataOfRoom["turn"]["nickname"]} is singing..",
                                       style: TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.bold),
@@ -435,12 +466,38 @@ class _PaintScreenState extends State<PaintScreen> {
                                         MainAxisAlignment.spaceEvenly,
                                     children: textBlankWidget,
                                   )
-                                : Center(
-                                    child: Text(
-                                      dataOfRoom["word"],
-                                      style: TextStyle(fontSize: 30),
+                                :
+                                    // child: Text(
+                                    //   dataOfRoom["word"],
+                                    //   style: TextStyle(fontSize: 30),
+                                    // ),
+                                    // child:  ElevatedButton(
+                                    //   onPressed: () {
+                                    //     Navigator.push(
+                                    //       context,
+                                    //       MaterialPageRoute(builder: (context) => VoiceDetectionScreen()),
+                                    //     );
+                                    //   },
+                                    //   child: Text('Start Voice Detection'),
+                                    // ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Center(
+                                      child: Text(
+                                        _text,
+                                        style: TextStyle(fontSize: 32.0),
+                                      ),
                                     ),
-                                  ),
+                                    SizedBox(height: 20.0),
+                                    FloatingActionButton(
+                                      onPressed: _isListening ? _stopListening : _startListening,
+                                      child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                                    ),
+                                  ],
+                                ),
+
                             Container(
                               height: MediaQuery.of(context).size.height * 0.3,
                               child: ListView.builder(
