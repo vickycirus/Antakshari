@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:cuadro/screens/voice_detection_screen.dart';
 import 'package:cuadro/models/custom_painter.dart';
 import 'package:cuadro/models/touch_point.dart';
@@ -36,7 +38,7 @@ class _PaintScreenState extends State<PaintScreen> {
   var focusNode = FocusNode();
   var scaffoldKey = GlobalKey<ScaffoldState>();
   bool isTextInputReadOnly = false;
-
+  String _firstChar='Y';
 
   stt.SpeechToText _speech;
   bool _isListening = false;
@@ -81,6 +83,7 @@ class _PaintScreenState extends State<PaintScreen> {
     selectedColor = Colors.black;
     strokeWidth = 2.0;
     _speech = stt.SpeechToText();
+
   }
 
   void renderTextBlank(String text) {
@@ -91,6 +94,50 @@ class _PaintScreenState extends State<PaintScreen> {
         style: TextStyle(fontSize: 30),
       ));
     }
+  }
+
+  void verifySongLyrics() async{
+    print("The texst is");
+    print(_text);
+    String url = "http://127.0.0.1:3000/getsongs";
+    final bodyServer = jsonEncode({"lyrics": _text,
+        "firstCharacter": _firstChar});
+// // Define the data you want to send
+//     Map<String, dynamic> songLyricsData = {
+//       'lyrics': _text,
+//       'firstCharacter': _firstChar,
+//     };
+
+// Send the data to the backend
+    http.Response response = await http.post(
+      Uri.parse(url),
+      headers:{'Content-Type': 'application/json'},
+      body: bodyServer,
+    );
+
+// Check the response status code
+    if (response.statusCode == 200) {
+      // The request was successful
+      final lastCharacter = json.decode(response.body);
+      String ff = lastCharacter['lastLetter'];
+      if(ff.length>0){
+        _firstChar =ff;
+      }
+      else{
+        _firstChar = getRandomCharacter();
+      }
+
+    } else {
+      // The request failed
+      print('Request failed with status: ${response.statusCode}.');
+    }
+  }
+
+  String getRandomCharacter() {
+    final random = Random();
+    final randomNumber = random.nextInt(26) + 65;
+    final randomAlphabet = String.fromCharCode(randomNumber);
+    return randomAlphabet;
   }
 
   void _startListening() async {
@@ -410,7 +457,7 @@ class _PaintScreenState extends State<PaintScreen> {
                               //   ),
                               // ),
                               child: Text(
-                                "The Song should start with letter {A}",
+                                "The Song should start with letter $_firstChar",
                                 style: TextStyle(
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold),
@@ -480,7 +527,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                     //   },
                                     //   child: Text('Start Voice Detection'),
                                     // ),
-                                Column(
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
@@ -494,6 +541,26 @@ class _PaintScreenState extends State<PaintScreen> {
                                     FloatingActionButton(
                                       onPressed: _isListening ? _stopListening : _startListening,
                                       child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        print("i am submit");
+                                      verifySongLyrics();
+
+                                      },
+                                      style: ButtonStyle(
+                                        backgroundColor: MaterialStateProperty.all(Colors.blue),
+                                        textStyle: MaterialStateProperty.all(
+                                          TextStyle(color: Colors.white),
+                                        ),
+                                        minimumSize: MaterialStateProperty.all(
+                                          Size(MediaQuery.of(context).size.width / 2.5, 50),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        "Submit",
+                                        style: TextStyle(color: Colors.white, fontSize: 16),
+                                      ),
                                     ),
                                   ],
                                 ),
