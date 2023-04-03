@@ -26,23 +26,23 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
             child: TextField(
               controller: nameController,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.transparent, width: 0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.transparent, width: 0),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  filled: true,
-                  fillColor: Color(0xffF5F6FA),
-                  hintText: "Enter Your Name",
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  )),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.transparent, width: 0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.transparent, width: 0),
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                filled: true,
+                fillColor: Color(0xffF5F6FA),
+                hintText: "Enter Your Name",
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
           ),
           SizedBox(height: 20),
@@ -51,23 +51,23 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
             child: TextField(
               controller: roomController,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.transparent, width: 0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.transparent, width: 0),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  filled: true,
-                  fillColor: Color(0xffF5F6FA),
-                  hintText: "Enter Room Name",
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  )),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.transparent, width: 0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.transparent, width: 0),
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                filled: true,
+                fillColor: Color(0xffF5F6FA),
+                hintText: "Enter Room Name",
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
           ),
           SizedBox(height: 40),
@@ -79,8 +79,14 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
                   "nickname": nameController.text,
                   "name": roomController.text,
                 };
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => PaintScreen(data: data, screenFrom: "joinRoom",)));
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => PaintScreen(
+                      data: data,
+                      screenFrom: "joinRoom",
+                    ),
+                  ),
+                );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -106,5 +112,6 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
         ],
       ),
     );
+
   }
 }
