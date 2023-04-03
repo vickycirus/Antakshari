@@ -82,6 +82,26 @@ app.post("/getsongs", async(req, res) =>{
 
 });
 
+app.post("/updateUserPoints", async(req, res) =>{
+    let data = req.body;
+    let roomId = data.roomid;
+    let playerId = data.playerid;
+    let points = data.points;
+    let updatedResult = await Room.updateOne(
+      { _id: roomId, 'players._id': playerId },
+      { $inc: { 'players.$[player].points': points } },
+      { arrayFilters: [{ 'player._id': playerId }] }
+    )
+    let roomData = await Room.find({_id:roomId});
+    if(updatedResult){
+    res.send({"data":roomData});
+    }
+    else{
+    res.send("Unsuccessful");
+    }
+
+});
+
 
 
 io.on("connection", (socket) => {

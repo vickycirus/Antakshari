@@ -55,7 +55,7 @@ class _PaintScreenState extends State<PaintScreen> {
   bool isShowFinalLeaderboard = false;
   String winner;
   int maxPoints = 0;
-
+  String isSong = "False";
 
 
   void startTimer() {
@@ -68,6 +68,8 @@ class _PaintScreenState extends State<PaintScreen> {
           socket.emit("change-turn", dataOfRoom["name"]);
           setState(() {
             getData();
+            updateUserPoints();
+            isSong = "False";
             timer.cancel();
           });
         } else {
@@ -120,6 +122,7 @@ class _PaintScreenState extends State<PaintScreen> {
       final dataBack = json.decode(response.body);
       String test = dataBack['lastLetter'];
       if(test.length>0) {
+        isSong = "True";
         songName = dataBack['songName'];
         singer = dataBack['singer'];
         album = dataBack['album'];
@@ -129,14 +132,51 @@ class _PaintScreenState extends State<PaintScreen> {
 
       }
       else{
+        isSong = "False";
         lastCharacter='';
         print(" i AM FALSE");
         print(lastCharacter);
       }
     } else {
       // The request failed
-
+      isSong = "False";
       lastCharacter='';
+      print('Request failed with status: ${response.statusCode}.');
+    }
+  }
+
+
+  void updateUserPoints() async{
+
+    String url = "http://127.0.0.1:3000/updateUserPoints";
+    int points = 0;
+    if(isSong.length==4){
+      points = 1;
+    }
+    else{
+      points = 0;
+    }
+    final bodyServer = jsonEncode(
+        {"roomid": dataOfRoom['_id'],
+          "playerid":dataOfRoom["turn"]["_id"],
+          "points":points});
+
+// Send the data to the backend
+    http.Response response = await http.post(
+      Uri.parse(url),
+      headers:{'Content-Type': 'application/json'},
+      body: bodyServer,
+    );
+
+// Check the response status code
+    if (response.statusCode == 200) {
+      final dataBack1 = json.decode(response.body);
+      print("Updated Data");
+      print(dataBack1);
+
+      }
+     else {
+      // The request failed
       print('Request failed with status: ${response.statusCode}.');
     }
   }
@@ -441,58 +481,10 @@ class _PaintScreenState extends State<PaintScreen> {
                             Container(
                               width: width,
                               height: height * 0.2,
-                              // child: GestureDetector(
-                              //   onPanUpdate: dataOfRoom["turn"]["nickname"] ==
-                              //           widget.data["nickname"]
-                              //       ? (details) {
-                              //           socket.emit("paint", {
-                              //             "details": {
-                              //               "dx": details.localPosition.dx,
-                              //               "dy": details.localPosition.dy
-                              //             },
-                              //             "roomName": widget.data["name"]
-                              //           });
-                              //         }
-                              //       : (_) {},
-                              //   onPanStart: dataOfRoom["turn"]["nickname"] ==
-                              //           widget.data["nickname"]
-                              //       ? (details) {
-                              //           socket.emit("paint", {
-                              //             "details": {
-                              //               "dx": details.localPosition.dx,
-                              //               "dy": details.localPosition.dy
-                              //             },
-                              //             "roomName": widget.data["name"]
-                              //           });
-                              //         }
-                              //       : (_) {},
-                              //   onPanEnd: dataOfRoom["turn"]["nickname"] ==
-                              //           widget.data["nickname"]
-                              //       ? (details) {
-                              //           socket.emit("paint", {
-                              //             "details": null,
-                              //             "roomName": widget.data["name"]
-                              //           });
-                              //         }
-                              //       : (_) {},
-                              //   child: SizedBox.expand(
-                              //     child: ClipRRect(
-                              //       borderRadius:
-                              //           BorderRadius.all(Radius.circular(20.0)),
-                              //       child: RepaintBoundary(
-                              //         key: globalKey,
-                              //         child: CustomPaint(
-                              //           size: Size.infinite,
-                              //           painter:
-                              //               MyCustomPainter(pointsList: points),
-                              //         ),
-                              //       ),
-                              //     ),
-                              //   ),
-                              // ),
+
 
                               child: Text(
-                                "The Song should start with letter $_firstChar",
+                                "\n                                                 The Song should start with letter $_firstChar",
                                 style: TextStyle(
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold),
@@ -502,35 +494,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                     widget.data["nickname"]
                                 ? Row(
                                     children: <Widget>[
-                                    //   IconButton(
-                                    //       icon: Icon(
-                                    //         Icons.color_lens,
-                                    //         color: selectedColor,
-                                    //       ),
-                                    //       onPressed: () {
-                                    //         selectColor();
-                                    //       }),
-                                    //   Expanded(
-                                    //     child: Slider(
-                                    //       min: 1.0,
-                                    //       max: 10.0,
-                                    //       label: "Stroke $strokeWidth",
-                                    //       activeColor: selectedColor,
-                                    //       value: strokeWidth,
-                                    //       onChanged: (double value) {
-                                    //         socket.emit("stroke-width", value);
-                                    //       },
-                                    //     ),
-                                    //   ),
-                                    //   IconButton(
-                                    //       icon: Icon(
-                                    //         Icons.layers_clear,
-                                    //         color: Colors.black,
-                                    //       ),
-                                    //       onPressed: () {
-                                    //         socket.emit("clean-screen",
-                                    //             widget.data["name"]);
-                                    //       }),
+
                                     ],
                                   )
                                 : Center(
@@ -549,66 +513,52 @@ class _PaintScreenState extends State<PaintScreen> {
                                     children: textBlankWidget,
                                   )
                                 :
-                                    // child: Text(
-                                    //   dataOfRoom["word"],
-                                    //   style: TextStyle(fontSize: 30),
-                                    // ),
-                                    // child:  ElevatedButton(
-                                    //   onPressed: () {
-                                    //     Navigator.push(
-                                    //       context,
-                                    //       MaterialPageRoute(builder: (context) => VoiceDetectionScreen()),
-                                    //     );
-                                    //   },
-                                    //   child: Text('Start Voice Detection'),
-                                    // ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
 
-                                    Center(
-                                      child: Text(
-                                        _text,
-                                        style: TextStyle(fontSize: 32.0),
-                                      ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Center(
+                                    child: Text(
+                                      _text,
+                                      style: TextStyle(fontSize: 32.0),
                                     ),
-                                        Text(
-                                        "The Song should start with letter $_firstChar",
-                                        style: TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold),
-                                        ),
-
-                                    SizedBox(height: 20.0),
-                                    FloatingActionButton(
-                                      onPressed: _isListening ? _stopListening : _startListening,
-                                      child: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        print("i am submit");
-                                      verifySongLyrics();
-
-                                      },
-                                      style: ButtonStyle(
-                                        backgroundColor: MaterialStateProperty.all(Colors.blue),
-                                        textStyle: MaterialStateProperty.all(
-                                          TextStyle(color: Colors.white),
-                                        ),
-                                        minimumSize: MaterialStateProperty.all(
-                                          Size(MediaQuery.of(context).size.width / 2.5, 50),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        "Submit",
-                                        style: TextStyle(color: Colors.white, fontSize: 16),
-                                      ),
-
-                                    ),
-                                  ],
-
+                                  ),
                                 ),
+                                SizedBox(height: 20.0),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: FloatingActionButton(
+                                    onPressed: _isListening ? _stopListening : _startListening,
+                                    child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      verifySongLyrics();
+                                    },
+                                    style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all(Colors.blue),
+                                      textStyle: MaterialStateProperty.all(
+                                        TextStyle(color: Colors.white),
+                                      ),
+                                      minimumSize: MaterialStateProperty.all(
+                                        Size(MediaQuery.of(context).size.width / 2.5, 50),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "Submit",
+                                      style: TextStyle(color: Colors.white, fontSize: 16),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
 
                             Container(
                               height: MediaQuery.of(context).size.height * 0.3,
@@ -682,7 +632,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                           horizontal: 16, vertical: 14),
                                       filled: true,
                                       fillColor: Color(0xffF5F6FA),
-                                      hintText: "Your guess",
+                                      hintText: "Enter your Text here!!!",
                                       hintStyle: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w400,

@@ -25,68 +25,93 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-
-          Text(
-            "Create/Join a room to play Online AntakShari",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 24,
+      backgroundColor: Colors.blueGrey[50],
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: 30.0),
+            Text(
+              "Welcome to Online Antakshari!",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.height / 10,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CreateRoomScreen(),
-                  ),
-                ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.blue),
-                  textStyle: MaterialStateProperty.all(
-                    TextStyle(color: Colors.white),
-                  ),
-                  minimumSize: MaterialStateProperty.all(
-                    Size(MediaQuery.of(context).size.width / 2.5, 50),
-                  ),
-                ),
-                child: Text(
-                  "Create",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+            SizedBox(height: 40.0),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 30.0),
+              child: Text(
+                "Create or join a room to start playing with your friends!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18.0,
                 ),
               ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => JoinRoomScreen(),
+            ),
+            SizedBox(height: 60.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => CreateRoomScreen(),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    minimumSize: Size(
+                      MediaQuery.of(context).size.width / 2.8,
+                      50,
+                    ),
+                  ),
+                  child: Text(
+                    "Create a Room",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.blue),
-                  textStyle: MaterialStateProperty.all(
-                    TextStyle(color: Colors.white),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => JoinRoomScreen(),
+                    ),
                   ),
-                  minimumSize: MaterialStateProperty.all(
-                    Size(MediaQuery.of(context).size.width / 2.5, 50),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.purple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    minimumSize: Size(
+                      MediaQuery.of(context).size.width / 2.8,
+                      50,
+                    ),
+                  ),
+                  child: Text(
+                    "Join a Room",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                child: Text(
-                  "Join",
-                  style: TextStyle(color: Colors.white, fontSize: 17),
-                ),
-              ),
-            ],
-          )
-        ],
+              ],
+            )
+          ],
+        ),
       ),
     );
+
   }
 }
