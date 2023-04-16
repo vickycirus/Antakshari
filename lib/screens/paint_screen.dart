@@ -103,7 +103,7 @@ class _PaintScreenState extends State<PaintScreen> {
   }
 
   void verifySongLyrics() async{
-    print("The texst is");
+    // print("The text is");
     print(_text);
     String url = "http://127.0.0.1:3000/getsongs";
     final bodyServer = jsonEncode({"lyrics": _text,
@@ -134,8 +134,8 @@ class _PaintScreenState extends State<PaintScreen> {
       else{
         isSong = "False";
         lastCharacter='';
-        print(" i AM FALSE");
-        print(lastCharacter);
+        // print(" i AM FALSE");
+        // print(lastCharacter);
       }
     } else {
       // The request failed
@@ -171,8 +171,23 @@ class _PaintScreenState extends State<PaintScreen> {
 // Check the response status code
     if (response.statusCode == 200) {
       final dataBack1 = json.decode(response.body);
-      print("Updated Data");
+      print("Updated Data from vikram");
       print(dataBack1);
+      // dataOfRoom=dataBack1["data"];
+      scoreboard.clear();
+
+      print("list 2");
+      print(dataBack1["data"][0]["players"]);
+      for (int i = 0; i < dataBack1["data"][0]["players"].length; i++) {
+        setState(() {
+          scoreboard.add({
+            "username": dataBack1["data"][0]["players"][i]["nickname"],
+            "points": dataBack1["data"][0]["players"][i]["points"].toString()
+          });
+        });
+      }
+      print("Now updated scoreboard");
+      print(scoreboard);
 
       }
      else {
@@ -314,6 +329,7 @@ class _PaintScreenState extends State<PaintScreen> {
                 renderTextBlank(data["word"]);
                 isTextInputReadOnly = false;
                 _start = 40;
+
                 guessedUserCtr = 0;
                 points.clear();
               });
@@ -322,6 +338,9 @@ class _PaintScreenState extends State<PaintScreen> {
               _timer.cancel();
               startTimer();
             });
+
+            print("update backedn");
+            print(dataOfRoom);
             if (dataOfRoom["turn"]["nickname"] == widget.data["nickname"] && lastCharacter.length > 0) {
               return AlertDialog(
                 title: Text('You Sang Correct'),
@@ -344,7 +363,7 @@ class _PaintScreenState extends State<PaintScreen> {
 
 
       socket.on("show-leaderboard", (roomPlayers) {
-        print(scoreboard);
+        // print(scoreboard);
         scoreboard.clear();
         for (int i = 0; i < roomPlayers.length; i++) {
           setState(() {
@@ -356,8 +375,8 @@ class _PaintScreenState extends State<PaintScreen> {
           if (maxPoints < int.parse(scoreboard[i]["points"])) {
             winner = scoreboard[i]["username"];
             maxPoints = int.parse(scoreboard[i]["points"]);
-            print(maxPoints);
-            print(winner);
+            // print(maxPoints);
+            // print(winner);
           }
         }
         setState(() {
@@ -465,6 +484,51 @@ class _PaintScreenState extends State<PaintScreen> {
       );
     }
 
+    showAlertDialog(BuildContext context, List<Map> userData) {
+      print("updated score");
+      print(userData);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('User Scores'),
+            content: Container(
+              width: double.maxFinite,
+              child: ListView.builder(
+                itemCount: userData.length,
+                itemBuilder: (BuildContext context, int index) {
+                  var data = userData[index].values;
+                  return ListTile(
+                    title: Text(
+                      data.elementAt(0),
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 23,
+                      ),
+                    ),
+                    trailing: Text(
+                      data.elementAt(1),
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  );
+                },
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
     return Scaffold(
       key: scaffoldKey,
       drawer: PlayerScore(scoreboard),
@@ -478,6 +542,13 @@ class _PaintScreenState extends State<PaintScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
+                            ElevatedButton(
+                              onPressed: () {
+                                showAlertDialog(context,scoreboard);
+                              },
+                              child: Text('Show Scores'),
+                            ),
+
                             Container(
                               width: width,
                               height: height * 0.2,
@@ -489,6 +560,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold),
                               ),
+
                             ),
                             dataOfRoom["turn"]["nickname"] ==
                                     widget.data["nickname"]
@@ -643,16 +715,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                 ),
                               )
                             : Container(),
-                        SafeArea(
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.menu,
-                              color: Colors.black,
-                            ),
-                            onPressed: () =>
-                                scaffoldKey.currentState.openDrawer(),
-                          ),
-                        ),
+
                       ],
                     )
                   : Center(
@@ -668,19 +731,24 @@ class _PaintScreenState extends State<PaintScreen> {
                               itemBuilder: (BuildContext context, index) {
                                 var data = scoreboard[index].values;
                                 return ListTile(
-                                  title: Text(
-                                    data.elementAt(0),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 23,
+                                  title: Center(
+                                    child: Text(
+                                      data.elementAt(0),
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 23,
+                                      ),
                                     ),
                                   ),
-                                  trailing: Text(
-                                    data.elementAt(1),
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.bold),
+
+                                  subtitle: Center(
+                                    child: Text(
+                                      data.elementAt(1),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                 );
                               },
@@ -766,6 +834,7 @@ class _PaintScreenState extends State<PaintScreen> {
                                 "${index + 1}.",
                                 style: TextStyle(
                                   fontSize: 24,
+
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
